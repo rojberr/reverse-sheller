@@ -37,3 +37,5 @@ out/
 .vscode/
 
 !mailsender-0.0.1-SNAPSHOT.jar
+# Ignore Gradle build output directory
+build
