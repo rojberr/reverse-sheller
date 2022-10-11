@@ -1,16 +1,22 @@
 plugins {
     id 'java'
-    id 'application'
 }
 
 group = 'dev.drzymala'
-version = '0.0.1-SNAPSHOT'
-sourceCompatibility = "1.7"
-
+version = '0.0.1'
+sourceCompatibility = "1.8"
 
 repositories {
     mavenCentral()
 }
 
 dependencies {}
-targetCompatibility = JavaVersion.VERSION_1_7
+
+jar {
+    manifest {
+        attributes(
+                'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
+                'Main-Class': 'dev.drzymala.reversesheller.ClientReverseShell'
+        )
+    }
+}
