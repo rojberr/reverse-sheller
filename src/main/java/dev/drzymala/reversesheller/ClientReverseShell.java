@@ -105,7 +105,7 @@ public class ClientReverseShell {
             } while (!this.error);
             System.out.println("EXIT");
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            System.out.println("ERROR: " + e.getMessage());
         }
     }
 
