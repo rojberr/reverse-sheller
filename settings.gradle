@@ -1,1 +1,7 @@
 rootProject.name = 'reverse-sheller'
+
+include 'src/server'
+include 'src/client'
+
+findProject(':src/client').name = 'client-reverse-sheller'
+findProject(':src/server').name = 'server-sheller'

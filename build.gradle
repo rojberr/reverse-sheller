@@ -9,16 +9,3 @@ sourceCompatibility = "1.8"
 repositories {
     mavenCentral()
 }
-
-dependencies {
-    implementation 'org.projectlombok:lombok:1.18.24'
-}
-
-jar {
-    manifest {
-        attributes(
-                'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
-                'Main-Class': 'dev.drzymala.reversesheller.ClientReverseShell'
-        )
-    }
-}
