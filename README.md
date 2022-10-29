@@ -32,7 +32,7 @@ java -jar <filename.jar> 127.0.0.1 4444
 ```
 
 (Requirement: JDK8 or higher needs
-to be installed on victims computer, and JAVA_HOME variable needs to be pointing to working JDK instance)
+to be installed on victim's computer, and JAVA_HOME variable needs to be pointing to working JDK instance)
 
 ## About 💁📙 <a name="about"></a>
 

