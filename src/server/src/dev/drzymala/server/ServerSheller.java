@@ -26,15 +26,39 @@ public class ServerSheller {
         System.out.print("|_| |_|\\__,_/_/\\_\\___/\\___|_|    \\_/  \n");
         System.out.print("                                      \n");
         System.out.println();
-
-        do {
-            listen(4444);
-        } while (true);
+        if (args.length != 1) {
+            System.out.print("Usage: java -jar server-sheller-0.0.1.jar <port>\n");
+        } else {
+            boolean error = false;
+            int port = -1;
+            args[0] = args[0].trim();
+            if (args[0].length() < 1) {
+                error = true;
+                System.out.print("<port> is required\n");
+            } else {
+                try {
+                    port = Integer.parseInt(args[0]);
+                    if (port < 0 || port > 65535) {
+                        error = true;
+                        System.out.print("<port> must be between 0 - 65535\n");
+                    }
+                } catch (NumberFormatException ex) {
+                    error = true;
+                    System.out.print("<port> is not valid\n");
+                }
+            }
+            if (!error) {
+                ServerSheller serverInstance = new ServerSheller(port);
+                do {
+                    serverInstance.listen();
+                } while (true);
+            }
+        }
     }
 
-    private static void listen(int port) throws Exception {
-        System.err.println("Listening at port " + port);
-        ServerSocket serverSocket = new ServerSocket(port);
+    private void listen() throws Exception {
+        System.err.println("Listening at port " + this.port);
+        ServerSocket serverSocket = new ServerSocket(this.port);
         Socket socket = serverSocket.accept();
         System.err.println("Accepted");
         transferStreams(socket);
