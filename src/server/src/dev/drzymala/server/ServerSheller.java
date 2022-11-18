@@ -26,6 +26,21 @@ public class ServerSheller {
         System.out.print("|_| |_|\\__,_/_/\\_\\___/\\___|_|    \\_/  \n");
         System.out.print("                                      \n");
         System.out.println();
+
+        String envPort = System.getenv("SERVER_PORT");
+        if (!envPort.isEmpty()) {
+            ServerSheller envServerInstance = new ServerSheller(Integer.parseInt(envPort));
+            do {
+                try {
+                    envServerInstance.listen();
+                } catch (IOException ioException) {
+                    System.out.println("IN/OUT EXCEPTION");
+                } catch (InterruptedException interruptedException) {
+                    System.out.print("INTERRUPTED");
+                }
+            } while (true);
+        }
+
         if (args.length != 1) {
             System.out.print("Usage: java -jar server-sheller-0.0.1.jar <port>\n");
         } else {
@@ -50,13 +65,19 @@ public class ServerSheller {
             if (!error) {
                 ServerSheller serverInstance = new ServerSheller(port);
                 do {
-                    serverInstance.listen();
+                    try {
+                        serverInstance.listen();
+                    } catch (IOException ioException) {
+                        System.out.println("IN/OUT EXEPTION");
+                    } catch (InterruptedException interruptedException) {
+                        System.out.print("INTERRUPTED");
+                    }
                 } while (true);
             }
         }
     }
 
-    private void listen() throws Exception {
+    private void listen() throws IOException, InterruptedException {
         System.err.println("Listening at port " + this.port);
         ServerSocket serverSocket = new ServerSocket(this.port);
         Socket socket = serverSocket.accept();
@@ -64,8 +85,7 @@ public class ServerSheller {
         transferStreams(socket);
     }
 
-    private static void transferStreams(Socket socket) throws IOException,
-            InterruptedException {
+    private static void transferStreams(Socket socket) throws IOException, InterruptedException {
         InputStream systemInput = System.in;
         OutputStream socketOutput = socket.getOutputStream();
         InputStream socketInput = socket.getInputStream();
