@@ -82,3 +82,8 @@ process will stay connected allowing the attacker to execute code using reverse 
 ## Author 👷 <a name="author"></a>
 
 Drop me a line at: contact.drzymala@gmail.com
+
+sudo ssh -i "/etc/ssh/***.pem" admin@IP -vvv
+export SERVER_PORT=5000
+sudo apt install openjdk-11-jre-headless
+sudo apt-get update
